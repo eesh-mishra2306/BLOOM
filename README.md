@@ -1,5 +1,7 @@
 # BLOOM
 
+**Live:** https://bloom-beige-one.vercel.app (Vercel project `bloom`, Neon PostgreSQL in Singapore, functions in `sin1`)
+
 BLOOM is a women's safety, cycle and wellness app with an AI companion called Mochi. This repository is **Phase 1: the functional web app**. It's a responsive Next.js app with these parts:
 
 - **Mochi**, an animated 3D companion. Mochi floats on every screen, reacts to what you do, and opens into a chat powered by a real AI model. On-device safety triage and checkable sources run alongside the chat.
