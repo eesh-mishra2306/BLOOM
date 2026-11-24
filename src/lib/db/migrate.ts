@@ -7,13 +7,14 @@ import { existsSync } from "node:fs";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
+import { withVerifiedTls } from "./tls";
 
 for (const file of [".env.local", ".env"]) {
   if (existsSync(file)) process.loadEnvFile(file);
 }
 
 export async function runMigrations(connectionString: string) {
-  const pool = new Pool({ connectionString, max: 1 });
+  const pool = new Pool({ connectionString: withVerifiedTls(connectionString), max: 1 });
   try {
     await migrate(drizzle(pool), { migrationsFolder: "drizzle" });
   } finally {

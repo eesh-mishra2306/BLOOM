@@ -22,7 +22,7 @@ What has to be true before real people rely on BLOOM. Items marked done are done
 - [x] Nonce CSP, security headers, same-site checks, zod validation, rate limits, hashed tokens.
 - [x] Honest SOS statuses; SOS works without AI, WebGL or network; offline page.
 - [x] Neutral lock-screen wording for reminders; discreet mode; PIN lock that covers the app before first paint.
-- [x] 220 automated tests (152 unit, 68 integration against real PostgreSQL), 7 end-to-end flows against the production build, an axe WCAG 2.2 AA scan of 27 page and theme combinations, strict TypeScript, and lint clean with the React Compiler rules.
+- [x] 224 automated tests (156 unit, 68 integration against real PostgreSQL), 7 end-to-end flows against the production build, an axe WCAG 2.2 AA scan of 27 page and theme combinations, strict TypeScript, and lint clean with the React Compiler rules.
 
 ## Should do soon after launch
 

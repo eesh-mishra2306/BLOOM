@@ -47,6 +47,7 @@ BLOOM holds some of the most sensitive data a person has: their cycle, their moo
 - Every cookie-authenticated `POST`/`PATCH` route rejects cross-site requests (`Origin` or `Sec-Fetch-Site`) and validates input with zod.
 - Rate limits: chat 30 per 10 min; SOS 10 per hour, after which the screen says to use call and text; journey updates 120 per 10 min; data export 5 per hour; contact invites 20 per hour.
 - The cron endpoint needs `Authorization: Bearer $CRON_SECRET`, compared in constant time.
+- Database connections that ask for TLS verify the server certificate and host name. `src/lib/db/tls.ts` spells `sslmode=require`, `prefer` and `verify-ca` as `verify-full`, which is what pg 8 already does, so a future pg upgrade can't quietly weaken the check.
 - AI keys and VAPID private keys never reach the browser. All AI calls are made server-side.
 
 ## Safety-critical behaviour

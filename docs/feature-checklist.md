@@ -117,7 +117,7 @@ Status against the master prompt (`docs/spec/master-prompt.md`) and the owner's 
 
 | Item | Status |
 | --- | --- |
-| Unit and integration tests | ✅ 220 tests: 152 unit, 68 integration against real PostgreSQL |
+| Unit and integration tests | ✅ 224 tests: 156 unit, 68 integration against real PostgreSQL |
 | End-to-end browser flows | ✅ 7 flows, run against the production build |
 | Accessibility scan | ✅ 27 page and theme scans, no WCAG 2.2 AA violations |
 | Load and penetration testing | ⏭️ before launch |
