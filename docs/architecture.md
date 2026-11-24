@@ -113,7 +113,7 @@ stateDiagram-v2
   ended --> [*]: location deleted 1 h later
 ```
 
-`processJourneys` runs from the scheduler, and `processJourney` runs whenever the traveller's screen or a contact's follow-along page asks about a journey. Each step claims its row with a conditional `UPDATE … RETURNING`, so overlapping runs can't send the same alert twice.
+`processJourneys` runs from the scheduler, and `processJourney` runs whenever the traveller's screen or a contact's follow-along page asks about a journey. Each successful scheduler run updates `job_heartbeat`; when it is more than 5 minutes old, the journey screens say that reminders and alerts only work while BLOOM is open. Each step claims its row with a conditional `UPDATE … RETURNING`, so overlapping runs can't send the same alert twice.
 
 ### Bloomverse
 

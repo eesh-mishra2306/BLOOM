@@ -54,3 +54,13 @@ export function nextDueAfterCheckIn(j: Pick<JourneySnapshot, "expectedArrivalAt"
   if (!j.checkInIntervalMin) return new Date(eta);
   return new Date(Math.min(eta, t + j.checkInIntervalMin * 60_000));
 }
+
+/**
+ * The journey timer (a scheduler calling /api/cron/journeys) should run every minute.
+ * After five minutes without a successful run, BLOOM treats it as off and says so on screen.
+ */
+export const TIMER_STALE_MS = 5 * 60_000;
+
+export function timerRunning(lastRunAt: Date | null, now: Date): boolean {
+  return lastRunAt !== null && now.getTime() - lastRunAt.getTime() <= TIMER_STALE_MS;
+}

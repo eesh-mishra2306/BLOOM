@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { journeyActions, nextDueAfterCheckIn, type JourneySnapshot } from "@/lib/safety/journey-rules";
+import { journeyActions, nextDueAfterCheckIn, TIMER_STALE_MS, timerRunning, type JourneySnapshot } from "@/lib/safety/journey-rules";
 
 const T0 = new Date("2026-11-24T15:00:00Z");
 const min = (n: number) => new Date(T0.getTime() + n * 60_000);
@@ -84,5 +84,25 @@ describe("nextDueAfterCheckIn", () => {
 
   it("gives ten more minutes when checking in after the expected arrival", () => {
     expect(nextDueAfterCheckIn(journey(), min(33))).toEqual(min(43));
+  });
+});
+
+describe("timerRunning", () => {
+  it("is off when the timer has never run", () => {
+    expect(timerRunning(null, T0)).toBe(false);
+  });
+
+  it("is on when the last run was a minute ago", () => {
+    expect(timerRunning(min(-1), T0)).toBe(true);
+  });
+
+  it("stays on up to five minutes after the last run, then turns off", () => {
+    expect(TIMER_STALE_MS).toBe(5 * 60_000);
+    expect(timerRunning(new Date(T0.getTime() - TIMER_STALE_MS), T0)).toBe(true);
+    expect(timerRunning(new Date(T0.getTime() - TIMER_STALE_MS - 1), T0)).toBe(false);
+  });
+
+  it("counts a run stamped slightly in the future (clock skew) as on", () => {
+    expect(timerRunning(min(1), T0)).toBe(true);
   });
 });

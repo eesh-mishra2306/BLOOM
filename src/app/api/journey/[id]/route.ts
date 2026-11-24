@@ -2,7 +2,7 @@ import { z } from "zod";
 import { apiUser } from "@/lib/auth/session";
 import { isCrossSite, ok, problem, readJson } from "@/lib/http";
 import { rateLimit } from "@/lib/rate-limit";
-import { arrive, checkIn, endJourney, extendJourney, getJourney, JourneyError, processJourney, updateJourneyLocation } from "@/lib/safety/journeys";
+import { arrive, checkIn, endJourney, extendJourney, getJourney, JourneyError, journeyTimerRunning, processJourney, updateJourneyLocation } from "@/lib/safety/journeys";
 import { webPushSender } from "@/lib/safety/push";
 import { locationSchema } from "@/lib/safety/sos";
 
@@ -22,8 +22,8 @@ export async function GET(req: Request, { params }: RouteContext<"/api/journey/[
   if (!mine) return problem(404, "not_found", "That journey doesn't exist.");
   // Don't let a late scheduler hold up a missed check-in.
   await processJourney(id, new Date(), webPushSender());
-  const journey = await getJourney(user.id, id);
-  return ok({ journey }, { headers: { "Cache-Control": "no-store" } });
+  const [journey, timerOn] = await Promise.all([getJourney(user.id, id), journeyTimerRunning()]);
+  return ok({ journey, timerOn }, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function PATCH(req: Request, { params }: RouteContext<"/api/journey/[id]">) {

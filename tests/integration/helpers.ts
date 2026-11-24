@@ -5,7 +5,7 @@ import { user } from "@/lib/db/schema";
 /** Wipes every table. User deletion cascades to all user-owned rows, including keys. */
 export async function resetDb() {
   await getDb().execute(
-    sql`TRUNCATE TABLE "user", "verification", "rate_limit", "app_rate_limit", "audit_log", keystore."user_key" CASCADE`,
+    sql`TRUNCATE TABLE "user", "verification", "rate_limit", "app_rate_limit", "audit_log", "job_heartbeat", keystore."user_key" CASCADE`,
   );
 }
 

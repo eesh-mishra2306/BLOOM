@@ -44,6 +44,7 @@ The keys live in a separate schema so they can be backed up and retained separat
 | `alert_delivery` | kind, status (sent / delivered / failed / not configured / no device), receipt token hash, error, delivered and acknowledged times | none |
 | `app_rate_limit` | key, count, window | keys include the user id and are deleted with the account |
 | `audit_log` | action and counts only, never content | deleted with the account. One anonymous "account.deleted" row is kept |
+| `job_heartbeat` | job name and when it last finished | none. Not about any person: the journey screens read it to tell whether the check-in timer is running |
 
 ## Tokens
 

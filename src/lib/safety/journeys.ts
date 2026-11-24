@@ -6,13 +6,13 @@ import { audit } from "@/lib/audit";
 import { hasConsent } from "@/lib/consent";
 import { openJson, sealJson } from "@/lib/crypto/user-keys";
 import { getDb } from "@/lib/db/client";
-import { journey, profile } from "@/lib/db/schema";
+import { jobHeartbeat, journey, profile } from "@/lib/db/schema";
 import { getEnv } from "@/lib/env";
 import { displayNameOf } from "@/lib/user-name";
 import { listContacts } from "./contacts";
 import { pushToUser } from "./devices";
 import { dispatchAlerts, type DeliveryView, type PushSender } from "./dispatch";
-import { isLive, journeyActions, nextDueAfterCheckIn, SHARE_AFTER_END_MS, SHARE_AFTER_ETA_MS, type JourneyStatus } from "./journey-rules";
+import { isLive, journeyActions, nextDueAfterCheckIn, SHARE_AFTER_END_MS, SHARE_AFTER_ETA_MS, timerRunning, type JourneyStatus } from "./journey-rules";
 import type { Fix } from "./links";
 import { locationSchema } from "./sos";
 import { hashToken } from "./tokens";
@@ -360,3 +360,16 @@ export async function processJourney(id: string, now: Date, sender: PushSender |
 }
 
 export type { DeliveryView };
+
+const TIMER_JOB = "journeys";
+
+/** Called after each successful scheduler run of processJourneys. */
+export async function recordJourneyTimerRun(at = new Date()): Promise<void> {
+  await getDb().insert(jobHeartbeat).values({ job: TIMER_JOB, lastRunAt: at }).onConflictDoUpdate({ target: jobHeartbeat.job, set: { lastRunAt: at } });
+}
+
+/** Whether the scheduler has run recently enough for BLOOM to remind and alert while the app is closed. */
+export async function journeyTimerRunning(now = new Date()): Promise<boolean> {
+  const [row] = await getDb().select({ lastRunAt: jobHeartbeat.lastRunAt }).from(jobHeartbeat).where(eq(jobHeartbeat.job, TIMER_JOB)).limit(1);
+  return timerRunning(row?.lastRunAt ?? null, now);
+}

@@ -22,7 +22,7 @@ Plain-language background: [docs/architecture.md](docs/architecture.md), [docs/s
 
 ## Run it locally
 
-You need Node.js 22+, npm, and PostgreSQL 15+. Docker is the easiest way to get PostgreSQL.
+You need Node.js 22 (the version production runs on, pinned in `package.json`), npm, and PostgreSQL 15+. Docker is the easiest way to get PostgreSQL.
 
 ```bash
 npm install
@@ -75,7 +75,8 @@ BLOOM is a standard Next.js server app with PostgreSQL. It runs on Vercel, Rende
      ```json
      { "crons": [{ "path": "/api/cron/journeys", "schedule": "* * * * *" }] }
      ```
-   - Vercel Hobby only allows daily cron jobs, and a per-minute schedule fails the deploy. On Hobby, use an external scheduler such as cron-job.org, or a small always-on worker.
+   - Vercel Hobby only allows daily cron jobs, and a per-minute schedule fails the deploy. On Hobby, use an external scheduler or a small always-on worker. With [cron-job.org](https://cron-job.org): create a job for `https://<your domain>/api/cron/journeys`, run it every minute, and add the request header `Authorization: Bearer <CRON_SECRET>`.
+   - Each successful run is recorded. When there hasn't been one for 5 minutes, the journey screens tell travellers that reminders and alerts only work while BLOOM is open on their screen. The notice goes away by itself within a minute of the next run.
    - As a fallback, an overdue journey is also checked whenever the traveller's screen or a contact's follow-along page asks for it. Don't rely on that alone.
 4. Push alerts need HTTPS and VAPID keys. On iPhone, contacts must add BLOOM to their Home Screen (iOS 16.4+) before they can receive alerts.
 5. Read [docs/production-readiness.md](docs/production-readiness.md) before real people use it.

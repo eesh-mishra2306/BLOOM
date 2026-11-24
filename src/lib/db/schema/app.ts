@@ -289,6 +289,12 @@ export const appRateLimit = pgTable("app_rate_limit", {
   windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
 });
 
+/** When each scheduled job last finished. The journey screens use it to say when the check-in timer is off. */
+export const jobHeartbeat = pgTable("job_heartbeat", {
+  job: text("job").primaryKey(),
+  lastRunAt: timestamp("last_run_at", { withTimezone: true }).notNull(),
+});
+
 /** Security-relevant events. `meta` must never contain health content. */
 export const auditLog = pgTable(
   "audit_log",

@@ -1,5 +1,5 @@
 "use client";
-import { BellRing, CheckCircle2, Clock, MapPin, Plus } from "lucide-react";
+import { BellRing, CheckCircle2, Clock, MapPin, Plus, TimerOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -14,15 +14,16 @@ import { useClientValue } from "@/lib/use-client-value";
 import { useNow } from "@/lib/use-now";
 import { ShareButtons } from "./share-buttons";
 
-type Props = { initial: ClientJourney; shareUrl: string; circle: CircleMember[]; timeZone: string; vapidKey: string | null };
+type Props = { initial: ClientJourney; shareUrl: string; circle: CircleMember[]; timeZone: string; vapidKey: string | null; timerOn: boolean };
 type Action = { action: "check_in" } | { action: "arrive" } | { action: "end" } | { action: "extend"; minutes: number };
 
 const names = (list: string[]) => (list.length <= 1 ? list.join("") : `${list.slice(0, -1).join(", ")} and ${list.at(-1)}`);
 
-export function JourneyLive({ initial, shareUrl, circle, timeZone, vapidKey }: Props) {
+export function JourneyLive({ initial, shareUrl, circle, timeZone, vapidKey, timerOn: timerOnAtLoad }: Props) {
   const router = useRouter();
   const now = useNow();
   const [j, setJ] = useState(initial);
+  const [timerOn, setTimerOn] = useState(timerOnAtLoad);
   const [busy, setBusy] = useState<string | null>(null);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [location, setLocation] = useState<{ state: "waiting" | "on" | "denied" | "unavailable"; fix?: Fix }>({ state: "waiting" });
@@ -71,13 +72,14 @@ export function JourneyLive({ initial, shareUrl, circle, timeZone, vapidKey }: P
     }
   }, [isDue, due]);
 
-  // Stay in sync with the server: the every-minute check may have alerted contacts.
+  // Stay in sync with the server: the every-minute check may have alerted contacts, and its timer may have started or stopped.
   useEffect(() => {
     const id = window.setInterval(async () => {
       if (document.visibilityState !== "visible") return;
       const res = await fetch(`/api/journey/${j.id}`).catch(() => null);
       if (!res?.ok) return;
-      const { journey } = (await res.json()) as { journey: ClientJourney };
+      const { journey, timerOn: on } = (await res.json()) as { journey: ClientJourney; timerOn?: boolean };
+      if (typeof on === "boolean") setTimerOn(on);
       if (journey.status === "arrived" || journey.status === "ended") router.refresh();
       else setJ(journey);
     }, 30_000);
@@ -111,6 +113,16 @@ export function JourneyLive({ initial, shareUrl, circle, timeZone, vapidKey }: P
         <p className="font-semibold text-muted">On the way to</p>
         <h1 className="text-4xl break-words">{j.destination}</h1>
       </div>
+
+      {timerOn ? null : (
+        <p className="flex items-start gap-2 rounded-2xl bg-accent-soft p-4 text-heading">
+          <TimerOff aria-hidden className="mt-0.5 size-5 shrink-0" />
+          <span>
+            <strong>Keep BLOOM open on your screen.</strong> Its automatic timer is off right now, so it can&apos;t remind you or alert your people
+            while it&apos;s closed or your screen is off.
+          </span>
+        </p>
+      )}
 
       {isDue ? (
         <section role="alert" className={escalated ? "emergency-surface rounded-[var(--radius-card)] p-5 sm:p-6" : "glass rounded-[var(--radius-card)] p-5 sm:p-6"}>
@@ -205,7 +217,7 @@ export function JourneyLive({ initial, shareUrl, circle, timeZone, vapidKey }: P
                     : "Finding your location…"}
           </p>
         </div>
-        <Reminders vapidKey={vapidKey} />
+        <Reminders vapidKey={vapidKey} timerOn={timerOn} />
       </Glass>
 
       {confirmEnd ? (
@@ -232,7 +244,7 @@ export function JourneyLive({ initial, shareUrl, circle, timeZone, vapidKey }: P
   );
 }
 
-function Reminders({ vapidKey }: { vapidKey: string | null }) {
+function Reminders({ vapidKey, timerOn }: { vapidKey: string | null; timerOn: boolean }) {
   const supported = useClientValue(() => pushSupported(), false);
   const [state, setState] = useState<"checking" | "on" | "off" | "busy">("checking");
 
@@ -261,7 +273,9 @@ function Reminders({ vapidKey }: { vapidKey: string | null }) {
     );
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <p className="text-sm text-muted">Get a reminder on this phone when a check-in is due, even with BLOOM closed.</p>
+      <p className="text-sm text-muted">
+        {timerOn ? "Get a reminder on this phone when a check-in is due, even with BLOOM closed." : "Get a reminder on this phone when a check-in is due."}
+      </p>
       <Button
         variant="secondary"
         disabled={state === "busy" || state === "checking"}

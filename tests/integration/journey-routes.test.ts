@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { getEnv } from "@/lib/env";
-import { getActiveJourney, startJourney } from "@/lib/safety/journeys";
+import { getActiveJourney, journeyTimerRunning, recordJourneyTimerRun, startJourney } from "@/lib/safety/journeys";
 import { resetDb, signUp } from "./helpers";
 import { acceptedContact } from "./safety-helpers";
 
@@ -41,6 +41,25 @@ describe("journey cron", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ prompted: 0, escalated: 0, expired: 0 });
   });
+
+  it("marks the journey timer as running after a successful run", async () => {
+    expect(await journeyTimerRunning()).toBe(false);
+    const res = await cron(new Request("http://localhost:3000/api/cron/journeys", { headers: { authorization: `Bearer ${getEnv().CRON_SECRET}` } }));
+    expect(res.status).toBe(200);
+    expect(await journeyTimerRunning()).toBe(true);
+  });
+
+  it("doesn't count a refused call as a run", async () => {
+    await cron(new Request("http://localhost:3000/api/cron/journeys", { headers: { authorization: "Bearer nope" } }));
+    expect(await journeyTimerRunning()).toBe(false);
+  });
+
+  it("treats a timer that last ran six minutes ago as off", async () => {
+    await recordJourneyTimerRun(new Date(Date.now() - 6 * 60_000));
+    expect(await journeyTimerRunning()).toBe(false);
+    await recordJourneyTimerRun(new Date());
+    expect(await journeyTimerRunning()).toBe(true);
+  });
 });
 
 describe("journey API", () => {
@@ -70,6 +89,14 @@ describe("journey API", () => {
     const { journey } = await startJourney(asha.userId, { destination: "Home", minutes: 30, checkInEveryMin: null, contactIds: [priya.id], shareLocation: false }, null, started);
     const res = await route.GET(new Request(`http://localhost:3000/api/journey/${journey.id}`, { headers: { cookie: asha.cookie } }), ctx(journey.id));
     expect((await res.json()).journey.status).toBe("escalated");
+  });
+
+  it("tells the traveller's screen whether the journey timer is on", async () => {
+    const { cookie, journey } = await travelling();
+    const get = () => route.GET(new Request(`http://localhost:3000/api/journey/${journey.id}`, { headers: { cookie } }), ctx(journey.id));
+    expect((await (await get()).json()).timerOn).toBe(false);
+    await recordJourneyTimerRun();
+    expect((await (await get()).json()).timerOn).toBe(true);
   });
 
   it("rejects unknown actions", async () => {

@@ -1,4 +1,5 @@
 "use client";
+import { TimerOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { allowJourneyLocation, beginJourney } from "@/app/(app)/journey/actions";
@@ -24,7 +25,7 @@ const REACH_TEXT = {
 
 const names = (list: string[]) => (list.length <= 1 ? list.join("") : `${list.slice(0, -1).join(", ")} and ${list.at(-1)}`);
 
-export function JourneyPlanner({ circle, locationConsent, timeZone }: { circle: CircleMember[]; locationConsent: boolean; timeZone: string }) {
+export function JourneyPlanner({ circle, locationConsent, timeZone, timerOn }: { circle: CircleMember[]; locationConsent: boolean; timeZone: string; timerOn: boolean }) {
   const router = useRouter();
   const now = useNow();
   const [destination, setDestination] = useState("");
@@ -199,6 +200,15 @@ export function JourneyPlanner({ circle, locationConsent, timeZone }: { circle: 
           <li>If you don&apos;t answer within 5 minutes, BLOOM alerts them.</li>
           <li>Tap &ldquo;I&apos;ve arrived&rdquo; when you get there, and they&apos;re told.</li>
         </ol>
+        {timerOn ? null : (
+          <p className="mt-3 flex items-start gap-2 rounded-2xl bg-accent-soft p-3 text-heading">
+            <TimerOff aria-hidden className="mt-0.5 size-5 shrink-0" />
+            <span>
+              Right now, steps 2 and 3 only happen while BLOOM is open on your screen. Its automatic timer is off, so it can&apos;t remind you or alert
+              anyone while it&apos;s closed or your screen is off.
+            </span>
+          </p>
+        )}
         <p className="mt-2 text-sm text-muted">BLOOM doesn&apos;t contact the police. In an emergency, use SOS or call 112.</p>
       </section>
 

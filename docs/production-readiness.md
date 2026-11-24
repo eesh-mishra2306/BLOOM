@@ -8,7 +8,8 @@ What has to be true before real people rely on BLOOM. Items marked done are done
 - [ ] **Legal review** against India's Digital Personal Data Protection Act 2023 and the DPDP Rules 2025. Health data, consent notices, an 18+ age gate (no verifiable parental consent flow exists), breach notification, data principal rights, and grievance contact. Publish a privacy notice and terms.
 - [ ] **Safety-workflow testing with real people**: SOS and journeys on mid-range Android phones and iPhones (installed to the Home Screen), with contacts on different phones, in battery-saver mode, on weak networks.
 - [ ] **Real push delivery** with production VAPID keys over HTTPS: measure delivery time and receipt rates.
-- [ ] **Scheduler** calling `/api/cron/journeys` every minute (Vercel Pro cron, or an external scheduler on Hobby), with alerting if it stops.
+- [ ] **Scheduler** calling `/api/cron/journeys` every minute (Vercel Pro cron, or an external scheduler on Hobby), with alerting if it stops. The journey screens already warn travellers when it hasn't run for 5 minutes; you still need to hear about it yourself.
+- [ ] **Node.js**: production is pinned to Node 22, which is supported until April 2027. Before then, run the test suite on the next LTS and change `engines.node` in `package.json`.
 - [ ] **Secrets** in a secret manager: `BLOOM_MASTER_KEY` (with an offline backup; losing it loses all health data), `BETTER_AUTH_SECRET`, VAPID keys, AI key, `CRON_SECRET`.
 - [ ] **Database**: managed PostgreSQL with point-in-time recovery, TLS, and key-table backups kept 7 days or less so crypto-shredding completes.
 - [ ] **Email**: Resend (or another provider) with a verified domain, for password reset.
@@ -21,7 +22,7 @@ What has to be true before real people rely on BLOOM. Items marked done are done
 - [x] Nonce CSP, security headers, same-site checks, zod validation, rate limits, hashed tokens.
 - [x] Honest SOS statuses; SOS works without AI, WebGL or network; offline page.
 - [x] Neutral lock-screen wording for reminders; discreet mode; PIN lock that covers the app before first paint.
-- [x] 212 automated tests (148 unit, 64 integration against real PostgreSQL), 7 end-to-end flows against the production build, an axe WCAG 2.2 AA scan of 27 page and theme combinations, strict TypeScript, and lint clean with the React Compiler rules.
+- [x] 220 automated tests (152 unit, 68 integration against real PostgreSQL), 7 end-to-end flows against the production build, an axe WCAG 2.2 AA scan of 27 page and theme combinations, strict TypeScript, and lint clean with the React Compiler rules.
 
 ## Should do soon after launch
 

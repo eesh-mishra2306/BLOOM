@@ -9,14 +9,14 @@ import { getConsents } from "@/lib/consent";
 import { getEnv } from "@/lib/env";
 import { listContacts } from "@/lib/safety/contacts";
 import type { CircleMember, ClientJourney } from "@/lib/safety/journey-client";
-import { getActiveJourney } from "@/lib/safety/journeys";
+import { getActiveJourney, journeyTimerRunning } from "@/lib/safety/journeys";
 import { vapidPublicKey } from "@/lib/safety/push";
 
 export const metadata: Metadata = { title: "Journey" };
 
 export default async function JourneyPage() {
   const { user, profile } = await requireOnboardedUser("/journey");
-  const [contacts, consents, active] = await Promise.all([listContacts(user.id), getConsents(user.id), getActiveJourney(user.id)]);
+  const [contacts, consents, active, timerOn] = await Promise.all([listContacts(user.id), getConsents(user.id), getActiveJourney(user.id), journeyTimerRunning()]);
   const circle: CircleMember[] = contacts
     .filter((c) => c.status === "accepted" || c.status === "pending")
     .map((c) => ({ id: c.id, name: c.name, relationship: c.relationship, phone: c.phone, status: c.status, devices: c.devices }));
@@ -29,6 +29,7 @@ export default async function JourneyPage() {
         circle={circle}
         timeZone={profile.timeZone}
         vapidKey={vapidPublicKey()}
+        timerOn={timerOn}
       />
     );
   }
@@ -40,7 +41,7 @@ export default async function JourneyPage() {
         <p className="max-w-prose text-fg">Walking home late, taking a cab, going somewhere new? Let the people you trust follow along until you get there.</p>
       </div>
       {circle.length ? (
-        <JourneyPlanner circle={circle} locationConsent={consents.location_journey} timeZone={profile.timeZone} />
+        <JourneyPlanner circle={circle} locationConsent={consents.location_journey} timeZone={profile.timeZone} timerOn={timerOn} />
       ) : (
         <EmptyState
           title="Add someone you trust first"

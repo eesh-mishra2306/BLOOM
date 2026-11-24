@@ -22,6 +22,13 @@
       "when": 1795467695698,
       "tag": "0002_companion_accessory",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795563619381,
+      "tag": "0003_journey_timer",
+      "breakpoints": true
     }
   ]
 }
