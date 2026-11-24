@@ -1,26 +1,378 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ── Variants driven by <html data-*> attributes (set before paint by the prefs bootstrap) ── */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant discreet (&:where([data-discreet="true"], [data-discreet="true"] *));
+@custom-variant reduced (&:where([data-motion="reduced"], [data-motion="reduced"] *));
+@custom-variant hc (&:where([data-contrast="high"], [data-contrast="high"] *));
+
+/* ── Brand palette (exact values from the brief) + accessible derivatives ── */
+@theme {
+  --color-bloom: #ff4f91; /* Bloom Pink */
+  --color-rose: #e83f65; /* Rose Red */
+  --color-blush: #fff0f5; /* Soft Blush */
+  --color-coral: #ff667a; /* Cherry Coral */
+  --color-petal: #ffb8d0; /* Petal Pink */
+  --color-cream: #fff9f7; /* Cream White */
+  --color-berry: #66263f; /* Deep Berry */
+  --color-lavender: #eadcf8; /* Lavender Mist */
+
+  /* Derived for contrast: white text on #ff4f91 is 3.1:1, on these it is 4.9:1 and 5.6:1 */
+  --color-pink-ink: #d6246a;
+  --color-pink-ink-deep: #c81e5e;
+  /* Emergency red, deliberately more red than the brand pinks: 5.9:1 with white text */
+  --color-sos: #c8102e;
+  --color-sos-deep: #a00d25;
+  --color-berry-night: #1c0c14;
+  --color-leaf: #3f7a5a;
+
+  --font-display: "Baloo 2 Variable", "Baloo 2", ui-rounded, "Segoe UI", system-ui, sans-serif;
+  --font-sans: "Mukta", ui-sans-serif, "Segoe UI", system-ui, sans-serif;
+
+  /* Type scale, ratio ≈ 1.2 below base and 1.25 above */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.90625rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1.03125rem;
+  --text-base--line-height: 1.6;
+  --text-lg: 1.1875rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.4375rem;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 1.8125rem;
+  --text-2xl--line-height: 1.15;
+  --text-3xl: 2.3125rem;
+  --text-3xl--line-height: 1.08;
+  --text-4xl: 3rem;
+  --text-4xl--line-height: 1.02;
+  --text-5xl: 4rem;
+  --text-5xl--line-height: 0.98;
+
+  /* Radii by hierarchy: petals for primary surfaces, softer squares below them */
+  --radius-chip: 999px;
+  --radius-field: 0.875rem;
+  --radius-card: 1.375rem;
+  --radius-petal: 2rem;
+  --radius-petal-tip: 0.75rem;
+
+  --ease-petal: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* Semantic tokens that change per theme */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-calm: var(--calm);
+  --color-sos-bg: var(--sos-bg);
+  --color-sos-fg: var(--sos-fg);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  color-scheme: light;
+  --text-scale: 1;
+  --bg: #fff9f7;
+  --fg: #4a1a2d;
+  --heading: #66263f;
+  --muted: rgb(102 38 63 / 0.74);
+  --surface: rgb(255 255 255 / 0.62);
+  --surface-strong: rgb(255 255 255 / 0.86);
+  --line: rgb(102 38 63 / 0.12);
+  --accent: #d6246a;
+  --accent-fg: #ffffff;
+  --accent-soft: #ffe1ec;
+  --calm: #eadcf8;
+  --sos-bg: #c8102e;
+  --sos-fg: #ffffff;
+  --glow: rgb(255 79 145 / 0.32);
+  --shadow-tint: 102 38 63;
+  --mesh-1: rgb(255 184 208 / 0.55);
+  --mesh-2: rgb(234 220 248 / 0.75);
+  --mesh-3: rgb(255 102 122 / 0.18);
+  --focus: #66263f;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #1c0c14;
+  --fg: #fff0f5;
+  --heading: #ffd6e5;
+  --muted: rgb(255 240 245 / 0.72);
+  --surface: rgb(64 25 42 / 0.55);
+  --surface-strong: rgb(74 30 49 / 0.88);
+  --line: rgb(255 184 208 / 0.16);
+  --accent: #ff4f91;
+  --accent-fg: #1c0c14;
+  --accent-soft: rgb(255 79 145 / 0.16);
+  --calm: rgb(234 220 248 / 0.14);
+  --sos-bg: #e01e37;
+  --sos-fg: #ffffff;
+  --glow: rgb(255 79 145 / 0.4);
+  --shadow-tint: 0 0 0;
+  --mesh-1: rgb(255 79 145 / 0.2);
+  --mesh-2: rgb(150 110 200 / 0.22);
+  --mesh-3: rgb(255 102 122 / 0.12);
+  --focus: #ffb8d0;
+  --color-pink-ink: #ff8fb6;
+  --color-pink-ink-deep: #ffa3c4;
+}
+
+/* Discreet ("Daybook"): a plain planner look. No pinks, no petals, no companion. */
+[data-discreet="true"] {
+  color-scheme: light;
+  --bg: #f5f4f1;
+  --fg: #2b2926;
+  --heading: #1f1d1b;
+  --muted: rgb(43 41 38 / 0.7);
+  --surface: #ffffff;
+  --surface-strong: #ffffff;
+  --line: rgb(43 41 38 / 0.14);
+  --accent: #3f4a57;
+  --accent-fg: #ffffff;
+  --accent-soft: #e6e8eb;
+  --calm: #eceae6;
+  --sos-bg: #3f4a57;
+  --sos-fg: #ffffff;
+  --glow: transparent;
+  --shadow-tint: 0 0 0;
+  --mesh-1: transparent;
+  --mesh-2: transparent;
+  --mesh-3: transparent;
+  --focus: #1f1d1b;
+}
+
+[data-contrast="high"] {
+  --fg: #1a0710;
+  --heading: #1a0710;
+  --muted: #3d1426;
+  --surface: #ffffff;
+  --surface-strong: #ffffff;
+  --line: #3d1426;
+  --accent: #a3164f;
+  --sos-bg: #a00d25;
+  --mesh-1: transparent;
+  --mesh-2: transparent;
+  --mesh-3: transparent;
+  --focus: #000000;
+}
+[data-theme="dark"][data-contrast="high"] {
+  --fg: #ffffff;
+  --heading: #ffffff;
+  --muted: #ffe3ee;
+  --surface: #000000;
+  --surface-strong: #000000;
+  --line: #ffe3ee;
+  --accent: #ff8ab6;
+  --focus: #ffffff;
+}
+
+/* ── Base ── */
+@layer base {
+  html {
+    font-size: calc(100% * var(--text-scale));
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.6;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Soft colour mesh behind everything. Fixed, painted once, no animation. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: -10%;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      radial-gradient(42% 38% at 12% 8%, var(--mesh-1), transparent 70%),
+      radial-gradient(40% 40% at 92% 18%, var(--mesh-2), transparent 70%),
+      radial-gradient(50% 45% at 70% 96%, var(--mesh-3), transparent 70%),
+      radial-gradient(35% 35% at 6% 82%, var(--mesh-2), transparent 70%);
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    color: var(--heading);
+    font-weight: 650;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  .font-display {
+    font-weight: 650;
+    letter-spacing: -0.012em;
+  }
+  ::selection {
+    background: var(--color-petal);
+    color: var(--color-berry);
+  }
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  [data-contrast="high"] :focus-visible {
+    outline-width: 4px;
+  }
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Reduced motion: honour the OS setting and BLOOM's own setting */
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-motion="full"]) *,
+  html:not([data-motion="full"]) *::before,
+  html:not([data-motion="full"]) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+[data-motion="reduced"] *,
+[data-motion="reduced"] *::before,
+[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ── Surfaces ── */
+
+/* Liquid glass: frosted, tinted by the mesh behind it, a soft specular edge on top */
+@utility glass {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.55),
+    0 1px 2px rgb(var(--shadow-tint) / 0.06),
+    0 12px 32px -12px rgb(var(--shadow-tint) / 0.18);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+  [data-theme="dark"] & {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.08),
+      0 16px 40px -16px rgb(0 0 0 / 0.6);
+  }
+  [data-discreet="true"] &,
+  [data-contrast="high"] & {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+  }
+}
+
+/* Cheaper surface for lists of cards: no blur, so mid-range phones keep 60 fps while scrolling */
+@utility glass-lite {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgb(var(--shadow-tint) / 0.05);
+}
+
+/* Petal: one corner drawn in tight like the tip of a petal. Reserved for primary surfaces. */
+@utility petal {
+  border-radius: var(--radius-petal) var(--radius-petal) var(--radius-petal) var(--radius-petal-tip);
+}
+@utility petal-flip {
+  border-radius: var(--radius-petal) var(--radius-petal) var(--radius-petal-tip) var(--radius-petal);
+}
+
+@utility glow {
+  box-shadow: 0 10px 30px -8px var(--glow);
+}
+
+@utility text-heading {
+  color: var(--heading);
+}
+
+/* Supports check: without backdrop-filter, glass becomes a solid surface */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: var(--surface-strong);
+  }
+}
+
+/* Emergency surfaces: never blurred, never animated, always opaque. */
+.emergency-surface,
+.emergency-surface * {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Hidden by the quick-exit control while the browser navigates away */
+html[data-exiting="true"] body {
+  visibility: hidden;
+}
+
+/* Petal sway used by small decorative flowers; disabled under reduced motion above */
+@keyframes petal-breathe {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.04) rotate(2deg);
+  }
+}
+@keyframes ring-sweep {
+  from {
+    stroke-dashoffset: var(--ring-from);
+  }
+  to {
+    stroke-dashoffset: var(--ring-to);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Let people scroll past the 3D garden on touch screens; horizontal drags still turn it. */
+.garden canvas {
+  touch-action: pan-y !important;
+}
+
+/* App lock: nothing private shows before the PIN screen appears. */
+html[data-locked="1"] [data-lockable],
+html[data-locked="1"] [data-mochi-dock] {
+  visibility: hidden;
 }

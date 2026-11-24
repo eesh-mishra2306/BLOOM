@@ -1,0 +1,1 @@
+ALTER TABLE "profile" ADD COLUMN "companion_accessory" text DEFAULT 'flower' NOT NULL;

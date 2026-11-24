@@ -1,0 +1,14 @@
+import { launch, signUpAndOnboard } from "./lib-session.mjs";
+const { browser, page, errors } = await launch();
+await signUpAndOnboard(page);
+await page.waitForTimeout(3500);
+await page.screenshot({ path: "/tmp/shots/dock.png" });
+await page.locator("[data-mochi-dock]").getByRole("button", { name: /Talk to Mochi/ }).click();
+await page.waitForTimeout(1200);
+await page.screenshot({ path: "/tmp/shots/chat-open.png" });
+await page.getByLabel("Message Mochi").fill("I don't want to live anymore");
+await page.getByRole("button", { name: "Send" }).click();
+await page.waitForTimeout(6000);
+await page.screenshot({ path: "/tmp/shots/chat-crisis.png" });
+console.log(errors.length ? "ERRORS:\n" + errors.join("\n") : "no page errors");
+await browser.close();

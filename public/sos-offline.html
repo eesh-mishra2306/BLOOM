@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#c8102e">
+<title>Emergency</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #fff9f7; color: #2a0b17; line-height: 1.45; }
+  main { max-width: 34rem; margin: 0 auto; padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem 2rem; }
+  h1 { font-size: 2rem; margin: 0.25rem 0 0.25rem; }
+  p { margin: 0.5rem 0; }
+  .note { color: #5a2a3d; font-size: 0.95rem; }
+  a.btn, button.btn { display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; min-height: 4rem; margin-top: 0.85rem; padding: 0.75rem 1rem; border: 0; border-radius: 1.25rem; font: inherit; font-size: 1.25rem; font-weight: 700; text-decoration: none; cursor: pointer; }
+  .call { background: #c8102e; color: #fff; font-size: 1.6rem !important; min-height: 5rem !important; }
+  .text { background: #66263f; color: #fff; }
+  .soft { background: #ffe1ec; color: #2a0b17; }
+  .small { min-height: 3.25rem !important; font-size: 1.05rem !important; }
+  .card { margin-top: 1.25rem; padding: 1rem 1.1rem; border-radius: 1.25rem; background: #fff; border: 1px solid #e9c9d4; }
+  .card h2 { font-size: 1.05rem; margin: 0 0 0.4rem; }
+  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 0.75rem; }
+  dt { font-weight: 700; } dd { margin: 0; }
+  #status { min-height: 1.5rem; font-weight: 600; }
+  a:focus-visible, button:focus-visible { outline: 4px solid #2a0b17; outline-offset: 3px; }
+</style>
+</head>
+<body>
+<main>
+  <p class="note">You're offline. These work through your phone, without internet.</p>
+  <h1>Emergency</h1>
+  <a id="call" class="btn call" href="tel:112">Call 112</a>
+  <a id="text" class="btn text" href="sms:?body=I%20need%20help.%20Please%20call%20me.">Text my trusted contacts</a>
+  <button id="locate" class="btn soft small" type="button" hidden>Add my location to the text</button>
+  <p id="status" role="status" aria-live="polite"></p>
+  <div id="extras"></div>
+  <div id="info" class="card" hidden>
+    <h2>My emergency information</h2>
+    <dl id="info-list"></dl>
+  </div>
+  <p class="note" id="who"></p>
+  <noscript><p class="note">Turn on JavaScript to add your trusted contacts and location to the text.</p></noscript>
+  <a class="btn soft small" href="/sos">Try the full SOS screen</a>
+</main>
+<script>
+(function () {
+  var card = {};
+  try { card = JSON.parse(localStorage.getItem("bloom.emergencyCard.v1") || "{}") || {}; } catch (e) {}
+  var number = card.emergency || "112";
+  var name = card.name || "Your friend";
+  var contacts = Array.isArray(card.contacts) ? card.contacts : [];
+  var ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  var fix = null;
+  function clean(p) { var t = String(p || "").trim(); var d = t.replace(/[^\d]/g, ""); return t.charAt(0) === "+" ? "+" + d : d; }
+  function message() {
+    var where = fix
+      ? " My location: https://maps.google.com/?q=" + fix.lat.toFixed(5) + "," + fix.lng.toFixed(5) + " (accurate to about " + Math.round(fix.accuracy) + " m)."
+      : " I couldn't share my location.";
+    var base = "SOS from " + name + " (sent with BLOOM): I need help." + where;
+    return card.message ? card.message + "\n\n" + base : base;
+  }
+  function smsHref() {
+    var to = contacts.map(function (c) { return clean(c.phone); }).filter(Boolean).join(",");
+    var body = encodeURIComponent(message());
+    if (ios) return to ? "sms:/open?addresses=" + to + "&body=" + body : "sms:&body=" + body;
+    return "sms:" + to + "?body=" + body;
+  }
+  var call = document.getElementById("call");
+  call.href = "tel:" + clean(number);
+  call.textContent = "Call " + number;
+  var text = document.getElementById("text");
+  text.href = smsHref();
+  if (contacts.length) {
+    text.textContent = "Text " + contacts.map(function (c) { return c.name; }).slice(0, 3).join(", ") + (contacts.length > 3 ? " and others" : "");
+  }
+  var status = document.getElementById("status");
+  var locate = document.getElementById("locate");
+  if ("geolocation" in navigator) {
+    locate.hidden = false;
+    locate.addEventListener("click", function () {
+      status.textContent = "Finding your location…";
+      navigator.geolocation.getCurrentPosition(
+        function (p) {
+          fix = { lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy };
+          text.href = smsHref();
+          status.textContent = "Location added (about " + Math.round(fix.accuracy) + " m). Tap the text button, then press Send.";
+        },
+        function (err) {
+          status.textContent = err.code === 1 ? "Location is blocked for this site. You can still send the text without it." : "Couldn't get your location. You can still send the text without it.";
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+      );
+    });
+  }
+  var extras = document.getElementById("extras");
+  (card.extras || []).forEach(function (x) {
+    var a = document.createElement("a");
+    a.className = "btn soft small";
+    a.href = "tel:" + clean(x.number);
+    a.textContent = x.label + ": " + x.number;
+    extras.appendChild(a);
+  });
+  if (card.info) {
+    var labels = { bloodGroup: "Blood group", allergies: "Allergies", medications: "Medicines", conditions: "Conditions", notes: "Notes" };
+    var list = document.getElementById("info-list");
+    var any = false;
+    Object.keys(labels).forEach(function (k) {
+      if (!card.info[k]) return;
+      any = true;
+      var dt = document.createElement("dt"); dt.textContent = labels[k];
+      var dd = document.createElement("dd"); dd.textContent = card.info[k];
+      list.appendChild(dt); list.appendChild(dd);
+    });
+    document.getElementById("info").hidden = !any;
+  }
+  document.getElementById("who").textContent = contacts.length
+    ? "The text goes from your own phone. It isn't sent until you press Send."
+    : "No trusted contacts saved on this phone yet. The text will open without recipients.";
+})();
+</script>
+</body>
+</html>
